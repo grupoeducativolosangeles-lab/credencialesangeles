@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Solicitud de Credenciales</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; margin: 0; padding: 20px; color: #1a202c; }
+    .contenedor { max-width: 800px; margin: 0 auto; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,.08); overflow: hidden; }
+    .header { background: linear-gradient(135deg, #1e3a8a, #2563eb); color: #fff; padding: 24px; text-align: center; }
+    .header h1 { margin: 0; font-size: 22px; }
+    .header p { margin: 6px 0 0; font-size: 14px; opacity: .9; }
+    .tabs { display: flex; border-bottom: 2px solid #e2e8f0; }
+    .tab { flex: 1; padding: 14px; text-align: center; cursor: pointer; font-weight: 600; color: #64748b; transition: .2s; border-bottom: 3px solid transparent; user-select: none; }
+    .tab.activo { color: #2563eb; border-bottom-color: #2563eb; background: #f8fafc; }
+    .contenido { padding: 24px; }
+    .panel { display: none; }
+    .panel.activo { display: block; }
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #334155; }
+    .requerido::after { content: ' *'; color: #dc2626; }
+    
+    /* FORZAR MAYÚSCULAS EN INPUTS */
+    input, select { 
+      width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; transition: .2s; background: #fff; font-family: inherit; 
+      text-transform: uppercase; /* <-- AQUÍ SE HACE LA MAGIA VISUAL */
+    }
+    
+    input:focus, select:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
+    input[readonly] { background: #f1f5f9; color: #475569; cursor: not-allowed; }
+    .fila { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .tutor-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; margin-bottom: 12px; }
+    .tutor-box h4 { margin: 0 0 10px; font-size: 13px; color: #475569; text-transform: uppercase; }
+    button { width: 100%; padding: 13px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: .2s; margin-top: 8px; font-family: inherit; }
+    button:hover { background: #1d4ed8; }
+    button:disabled { background: #94a3b8; cursor: not-allowed; }
+    .mensaje { padding: 12px; border-radius: 8px; margin-top: 14px; font-size: 14px; display: none; line-height: 1.4; }
+    .mensaje.ok { background: #dcfce7; color: #166534; display: block; }
+    .mensaje.error { background: #fee2e2; color: #991b1b; display: block; }
+    .mensaje.info { background: #dbeafe; color: #1e40af; display: block; }
+    @media (max-width: 600px) { .fila { grid-template-columns: 1fr; } .contenido { padding: 16px; } }
+  </style>
+</head>
+<body>
+  <div class="contenedor">
+    <div class="header">
+      <h1>📋 Solicitud de Credenciales</h1>
+      <p>Sistema de registro escolar</p>
+    </div>
+
+    <div class="tabs">
+      <div class="tab activo" onclick="cambiarTab(0)">🎓 Credencial Alumno</div>
+      <div class="tab" onclick="cambiarTab(1)">🛡️ Credencial Seguro</div>
+    </div>
+
+    <div class="contenido">
+      <!-- PANEL 1: ALUMNO -->
+      <div class="panel activo" id="panel0">
+        <form id="formAlumno" onsubmit="enviarAlumno(event)">
+          <div class="fila">
+            <div class="form-group">
+              <label class="requerido">Matrícula</label>
+              <input type="text" name="matricula" id="aluMatricula" oninput="alEscribirMatricula1()" placeholder="Escribe la matrícula..." required autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label class="requerido">Grado / Nivel</label>
+              <input type="text" name="grado" id="aluGrado" readonly required placeholder="Se llena automático">
+            </div>
+          </div>
+          <div class="mensaje" id="busqMsg1"></div>
+          <div class="form-group"><label class="requerido">Nombre(s)</label><input type="text" name="nombre" id="aluNombre" readonly required></div>
+          <div class="fila">
+            <div class="form-group"><label class="requerido">Apellido Paterno</label><input type="text" name="appaterno" id="aluPaterno" readonly required></div>
+            <div class="form-group"><label>Apellido Materno</label><input type="text" name="apmaterno" id="aluMaterno" readonly></div>
+          </div>
+          <button type="submit" id="btnAlumno">Registrar Credencial de Alumno</button>
+          <div class="mensaje" id="msgAlumno"></div>
+        </form>
+      </div>
+
+      <!-- PANEL 2: SEGURO -->
+      <div class="panel" id="panel1">
+        <form id="formSeguro" onsubmit="enviarSeguro(event)">
+          <div class="fila">
+            <div class="form-group">
+              <label class="requerido">Matrícula</label>
+              <input type="text" name="matricula" id="segMatricula" oninput="alEscribirMatricula2()" placeholder="Escribe la matrícula..." required autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label class="requerido">Grado / Nivel</label>
+              <input type="text" name="grado" id="segGrado" readonly required placeholder="Se llena automático">
+            </div>
+          </div>
+          <div class="mensaje" id="busqMsg2"></div>
+          <div class="form-group"><label class="requerido">Nombre del Alumno</label><input type="text" name="alumno" id="segAlumno" readonly required></div>
+          
+          <div class="tutor-box">
+            <h4>Tutor 1</h4>
+            <div class="fila">
+              <div class="form-group"><label class="requerido">Nombre</label><input type="text" name="tutor1" required autocomplete="off"></div>
+              <div class="form-group">
+                <label class="requerido">Parentesco</label>
+                <select name="parentesco1" required>
+                  <option value="">Selecciona...</option>
+                  <option>Padre</option><option>Madre</option><option>Padrastro</option><option>Madrastra</option><option>Tutor legal</option><option>Abuelo(a)</option><option>Tío(a)</option><option>Hermano(a)</option><option>Otro</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <div class="tutor-box">
+            <h4>Tutor 2 (opcional)</h4>
+            <div class="fila">
+              <div class="form-group"><label>Nombre</label><input type="text" name="tutor2" autocomplete="off"></div>
+              <div class="form-group">
+                <label>Parentesco</label>
+                <select name="parentesco2">
+                  <option value="">—</option>
+                  <option>Padre</option><option>Madre</option><option>Padrastro</option><option>Madrastra</option><option>Tutor legal</option><option>Abuelo(a)</option><option>Tío(a)</option><option>Hermano(a)</option><option>Otro</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <div class="tutor-box">
+            <h4>Tutor 3 (opcional)</h4>
+            <div class="fila">
+              <div class="form-group"><label>Nombre</label><input type="text" name="tutor3" autocomplete="off"></div>
+              <div class="form-group">
+                <label>Parentesco</label>
+                <select name="parentesco3">
+                  <option value="">—</option>
+                  <option>Padre</option><option>Madre</option><option>Padrastro</option><option>Madrastra</option><option>Tutor legal</option><option>Abuelo(a)</option><option>Tío(a)</option><option>Hermano(a)</option><option>Otro</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <button type="submit" id="btnSeguro">Registrar Credencial de Seguro</button>
+          <div class="mensaje" id="msgSeguro"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxdDl6NSeQh5JxECn0CpiinnW-qyvaktsXI7MP31gYl7uY8cQ_eSn3xlK5jRbtM6VeP/exec';
+
+    function cambiarTab(i) {
+      document.querySelectorAll('.tab').forEach((t, idx) => t.classList.toggle('activo', idx === i));
+      document.querySelectorAll('.panel').forEach((p, idx) => p.classList.toggle('activo', idx === i));
+    }
+
+    // MODIFICADO: Convierte todos los textos a MAYÚSCULAS antes de enviarlos
+    function obtenerDatos(form) {
+      const fd = new FormData(form);
+      const obj = {};
+      fd.forEach((v, k) => {
+        obj[k] = v.toString().toUpperCase().trim(); // Todo a mayúsculas y sin espacios extra
+      });
+      return obj;
+    }
+
+    async function llamarAPI(accion, datos) {
+      try {
+        const respuesta = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ accion: accion, datos: datos }) });
+        return await respuesta.json();
+      } catch (error) { return { ok: false, mensaje: 'Error de conexión.' }; }
+    }
+
+    // ====== AUTOCOMPLETADO PANEL 1 ======
+    let timeout1 = null;
+    function alEscribirMatricula1() {
+      const mat = document.getElementById('aluMatricula').value.trim();
+      const msg = document.getElementById('busqMsg1');
+      const nombre = document.getElementById('aluNombre'), paterno = document.getElementById('aluPaterno'), materno = document.getElementById('aluMaterno'), grado = document.getElementById('aluGrado');
+
+      if (!mat) { nombre.value = ''; paterno.value = ''; materno.value = ''; grado.value = ''; msg.className = 'mensaje'; msg.textContent = ''; return; }
+
+      clearTimeout(timeout1);
+      timeout1 = setTimeout(async () => {
+        msg.className = 'mensaje info'; msg.textContent = 'Buscando...';
+        const res = await llamarAPI('buscar', { matricula: mat });
+        if (res.ok) {
+          const a = res.alumno;
+          nombre.value = a.nombre || ''; paterno.value = a.appaterno || ''; materno.value = a.apmaterno || '';
+          grado.value = a.grado || '';
+          msg.className = 'mensaje ok'; msg.textContent = '✓ Alumno encontrado.';
+        } else {
+          nombre.value = ''; paterno.value = ''; materno.value = ''; grado.value = '';
+          msg.className = 'mensaje error'; msg.textContent = res.mensaje;
+        }
+      }, 400);
+    }
+
+    // ====== AUTOCOMPLETADO PANEL 2 ======
+    let timeout2 = null;
+    function alEscribirMatricula2() {
+      const mat = document.getElementById('segMatricula').value.trim();
+      const msg = document.getElementById('busqMsg2');
+      const alumno = document.getElementById('segAlumno');
+      const grado = document.getElementById('segGrado');
+
+      if (!mat) { alumno.value = ''; grado.value = ''; msg.className = 'mensaje'; msg.textContent = ''; return; }
+
+      clearTimeout(timeout2);
+      timeout2 = setTimeout(async () => {
+        msg.className = 'mensaje info'; msg.textContent = 'Buscando...';
+        const res = await llamarAPI('buscar', { matricula: mat });
+        if (res.ok) {
+          const a = res.alumno;
+          alumno.value = [a.nombre, a.appaterno, a.apmaterno].filter(Boolean).join(' ');
+          grado.value = a.grado || '';
+          msg.className = 'mensaje ok'; msg.textContent = '✓ Alumno encontrado.';
+        } else {
+          alumno.value = ''; grado.value = '';
+          msg.className = 'mensaje error'; msg.textContent = res.mensaje;
+        }
+      }, 400);
+    }
+
+    // ====== ENVIAR FORMULARIOS ======
+    async function enviarAlumno(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnAlumno'), msg = document.getElementById('msgAlumno');
+      btn.disabled = true; btn.textContent = 'Guardando...'; msg.className = 'mensaje';
+      const res = await llamarAPI('guardarAlumno', obtenerDatos(e.target));
+      btn.disabled = false; btn.textContent = 'Registrar Credencial de Alumno';
+      msg.className = 'mensaje ' + (res.ok ? 'ok' : 'error'); msg.textContent = res.mensaje;
+      if (res.ok) { document.getElementById('formAlumno').reset(); document.getElementById('busqMsg1').className = 'mensaje'; }
+    }
+
+    async function enviarSeguro(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSeguro'), msg = document.getElementById('msgSeguro');
+      btn.disabled = true; btn.textContent = 'Guardando...'; msg.className = 'mensaje';
+      const res = await llamarAPI('guardarSeguro', obtenerDatos(e.target));
+      btn.disabled = false; btn.textContent = 'Registrar Credencial de Seguro';
+      msg.className = 'mensaje ' + (res.ok ? 'ok' : 'error'); msg.textContent = res.mensaje;
+      if (res.ok) { document.getElementById('formSeguro').reset(); document.getElementById('busqMsg2').className = 'mensaje'; }
+    }
+  </script>
+</body>
+</html>
